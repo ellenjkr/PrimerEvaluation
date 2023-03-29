@@ -9,13 +9,15 @@ from statistics import mean
 
 
 class PrimersAnalyzer():
-	def __init__(self, input_file_f, input_file_r, pair_name, GC_PERC, RESULTS_DIR):
+	def __init__(self, input_file_f, input_file_r, primer_pair, GC_PERC, RESULTS_DIR, REVERSE_COMPLEMENT, OUTPUT_FILE):
 		super(PrimersAnalyzer, self).__init__()
 		self.input_file_f = input_file_f
 		self.input_file_r = input_file_r
-		self.pair_name = pair_name
+		self.primer_pair = primer_pair
 		self.GC_PERC = GC_PERC
 		self.RESULTS_DIR = RESULTS_DIR
+		self.REVERSE_COMPLEMENT = REVERSE_COMPLEMENT
+		self.OUTPUT_FILE = OUTPUT_FILE
 
 
 	def get_primers_from_fasta(self, file):
@@ -56,7 +58,7 @@ class PrimersAnalyzer():
 		return tm
 
 
-	def get_primers_info(self, primers_dict):
+	def get_primers_info(self, primers_dict, filter_gc=True):
 		filtered_primers_dict = {
 			'ID': [],
 			'Seq': [],
@@ -69,7 +71,7 @@ class PrimersAnalyzer():
 			
 			gc_perc = round(GC(seq), 4)
 			
-			if gc_perc >= self.GC_PERC[0] and gc_perc <= self.GC_PERC[1]:
+			if gc_perc >= self.GC_PERC[0] and gc_perc <= self.GC_PERC[1] or filter_gc is False:
 				filtered_primers_dict['GC %'].append(gc_perc)
 				filtered_primers_dict['ID'].append(primers_dict['ID'][pos])
 				filtered_primers_dict['Seq'].append(seq)
@@ -94,6 +96,47 @@ class PrimersAnalyzer():
 
 		return filtered_primers_dict
 
+	def get_primer_pair_desc(self):
+		primers_dict = {
+			'ID': [],
+			'Seq': [],
+		}
+
+		if self.REVERSE_COMPLEMENT:
+			primers_dict['ID'].append(self.primer_pair['forward_id'] + ' Reverse Complement')
+			primers_dict['ID'].append(self.primer_pair['reverse_id'] + ' Reverse Complement')
+			primers_dict['Seq'].append(self.primer_pair['forward_primer_reverse_complement'])
+			primers_dict['Seq'].append(self.primer_pair['reverse_primer_reverse_complement'])
+		else:
+			primers_dict['ID'].append(self.primer_pair['forward_id'])
+			primers_dict['ID'].append(self.primer_pair['reverse_id'])
+			primers_dict['Seq'].append(self.primer_pair['forward_primer'])
+			primers_dict['Seq'].append(self.primer_pair['reverse_primer'])
+
+
+		primers_dict = self.get_primers_info(primers_dict, filter_gc=False)
+
+		df = pd.DataFrame(primers_dict)
+
+		return df
+
+
+	def build_primer_desc_sheet(self, writer):  # Build primer description sheet
+		self.primer_pair.to_excel(writer, sheet_name='Primer Pair Description', startrow=0, header=False, index=True)
+		worksheet = writer.sheets['Primer Pair Description']
+		primer_pair_desc = self.get_primer_pair_desc()
+
+		max_row = self.primer_pair.size
+
+		primer_pair_desc.to_excel(writer, sheet_name='Primer Pair Description', startrow=max_row + 2, header=False, index=False)
+		
+		(max_row_table, max_col_table) = primer_pair_desc.shape
+		column_settings = [{'header': column} for column in primer_pair_desc.columns]
+		worksheet.add_table(max_row + 1, 0, max_row_table + max_row + 1, max_col_table - 1, {'columns': column_settings})
+		worksheet.set_column(2, max_col_table - 1, 15)
+		worksheet.set_column(0, 1, 40)
+
+		return (writer, worksheet)
 
 	def build_excel_sheet(self, writer, sheet_name, df):
 		df.to_excel(writer, sheet_name=sheet_name, startrow=1, header=False, index=False)
@@ -122,7 +165,10 @@ class PrimersAnalyzer():
 		return (writer, worksheet)
 
 	def run(self):
-		writer = pd.ExcelWriter(f'{self.RESULTS_DIR}/{self.pair_name}.xlsx', engine='xlsxwriter')
+		forward_id = self.primer_pair['forward_id']
+		reverse_id = self.primer_pair['reverse_id']
+		writer = pd.ExcelWriter(f'{self.RESULTS_DIR}/{self.OUTPUT_FILE}.xlsx', engine='xlsxwriter')
+		self.build_primer_desc_sheet(writer)
 		
 		primers_dict_f = self.get_primers_from_fasta(self.input_file_f)
 		primers_dict_f = self.get_primers_info(primers_dict_f)
@@ -132,6 +178,7 @@ class PrimersAnalyzer():
 		writer, worksheet = self.build_tm_dg_chart(writer, worksheet, 'Forward', df, 'M', 'Homodimer', 'L')
 
 		primers_dict_r = self.get_primers_from_fasta(self.input_file_r)
+
 		primers_dict_r = self.get_primers_info(primers_dict_r)
 		df = pd.DataFrame(primers_dict_r)
 		writer, worksheet = self.build_excel_sheet(writer, 'Reverse', df)
