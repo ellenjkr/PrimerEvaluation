@@ -90,7 +90,7 @@ if __name__ == '__main__':
 	REVERSE_COMPLEMENT = False
 	PRIMERS_AND_BARCODES_DIR = 'Primers And Barcodes Files'
 	BARCODES_FILE = 'barcodes_l5_n16000000_nobaseruns_filtered.fa'
-	PRIMERS_FILE = 'luize_14-09-23.csv'
+	PRIMERS_FILE = 'primers.csv'
 	FASTA_FILES_DIR = 'Fasta Files - Primers'
 	OUTPUT_FILE_PATTERN = 'barcoded_l5_primer'
 	RESULTS_DIR = 'Results'
