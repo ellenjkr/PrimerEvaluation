@@ -1,2 +1,4 @@
 
 *.pyc
+*.fasta
+*.xlsx
