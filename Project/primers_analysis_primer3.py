@@ -184,4 +184,4 @@ class PrimersAnalyzer():
 		writer, worksheet = self.build_excel_sheet(writer, 'Reverse', df)
 		writer, worksheet = self.build_tm_dg_chart(writer, worksheet, 'Reverse', df, 'H', 'Hairpin', 'B')
 		writer, worksheet = self.build_tm_dg_chart(writer, worksheet, 'Reverse', df, 'M', 'Homodimer', 'L')
-		writer.save()
+		writer.close()

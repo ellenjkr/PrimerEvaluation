@@ -89,10 +89,10 @@ if __name__ == '__main__':
 	ADD_BARCODES2PRIMERS = True
 	REVERSE_COMPLEMENT = False
 	PRIMERS_AND_BARCODES_DIR = 'Primers And Barcodes Files'
-	BARCODES_FILE = 'barcodes_l6_n16000000_nobaseruns_filtered.fa'
-	PRIMERS_FILE = '16s_coi_primers.csv'
+	BARCODES_FILE = 'barcodes_l5_n16000000_nobaseruns_filtered.fa'
+	PRIMERS_FILE = 'luize_14-09-23.csv'
 	FASTA_FILES_DIR = 'Fasta Files - Primers'
-	OUTPUT_FILE_PATTERN = 'barcoded_l6_nobaseruns_primer'
+	OUTPUT_FILE_PATTERN = 'barcoded_l5_primer'
 	RESULTS_DIR = 'Results'
 	DISCARD_BASERUNS = True  # Discard baseruns between barcodes and primers
 	GC_PERC = (35, 65)
